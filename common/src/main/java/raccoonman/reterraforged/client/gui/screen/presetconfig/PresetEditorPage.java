@@ -15,7 +15,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationContext;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.Holder;
@@ -23,7 +22,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import raccoonman.reterraforged.client.data.RTFTranslationKeys;
 import raccoonman.reterraforged.client.gui.screen.page.BisectedPage;
 import raccoonman.reterraforged.client.gui.screen.presetconfig.SelectPresetPage.PresetEntry;
@@ -41,17 +39,17 @@ public abstract class PresetEditorPage extends BisectedPage<PresetConfigScreen, 
 	private CycleButton<ResourceKey<Noise>> noise;
 	private Preview preview;
 	protected PresetEntry preset;
-	
+
 	public PresetEditorPage(PresetConfigScreen screen, PresetEntry preset) {
 		super(screen);
-		
+
 		this.preset = preset;
 	}
-	
+
 	protected void regenerate() {
 		this.preview.regenerate();
 	}
-	
+
 	@Override
 	public void init() {
 		super.init();
@@ -71,7 +69,7 @@ public abstract class PresetEditorPage extends BisectedPage<PresetConfigScreen, 
 		this.noise = PresetWidgets.createCycle(ImmutableList.of(RTFClimateNoise.MOISTURE, RTFClimateNoise.TEMPERATURE, RTFTerrainNoise.CONTINENT), Optional.ofNullable(this.noise).map(CycleButton::getValue).orElse(RTFClimateNoise.MOISTURE), RTFTranslationKeys.GUI_BUTTON_NOISE, (value, button) -> {
 			this.preview.regenerate();
 		}, (h) -> h.location().toString());
-		
+
 		this.preview = new Preview();
 		this.preview.regenerate();
 
@@ -80,31 +78,31 @@ public abstract class PresetEditorPage extends BisectedPage<PresetConfigScreen, 
 		this.right.addWidget(this.noise);
 		this.right.addWidget(this.preview);
 	}
-	
+
 	@Override
 	public void onClose() {
 		super.onClose();
-	
+
 		try {
 			this.preset.save();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		this.preview.close();
 	}
-	
+
 	@Override
 	public void onDone() {
 		super.onDone();
-		
+
 		try {
 			this.screen.applyPreset(this.preset);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private class Preview extends Button {
 	    private static final int FACTOR = 4;
 	    public static final int SIZE = (1 << 4) << FACTOR;
@@ -147,7 +145,7 @@ public abstract class PresetEditorPage extends BisectedPage<PresetConfigScreen, 
 								int tx = cx + lx;
 								int ty = cy + ly;
 								int color = (int) (noise.value().compute((tx - halfX) * delta, (ty - halfY) * delta, (int) PresetEditorPage.this.screen.getSettings().options().seed()) * 255);
-								
+
 					            pixels.setPixelRGBA(tx, height - 1 - ty, rgba(color, color, color));
 							}
 						}
@@ -157,11 +155,11 @@ public abstract class PresetEditorPage extends BisectedPage<PresetConfigScreen, 
 			CompletableFuture.allOf(futures).join();
 	        this.texture.upload();
 	    }
-	    
+
 	    private static int rgba(int r, int g, int b) {
 	        return r + (g << 8) + (b << 16) + (255 << 24);
 	    }
-	    
+
 	    public void close() {
 	        texture.close();
 	    }
@@ -183,9 +181,9 @@ public abstract class PresetEditorPage extends BisectedPage<PresetConfigScreen, 
 //	        preRender();
 	//
 	    	RenderSystem.setShaderTexture(0, this.texture.getId());
-			// TODO (1.20.1): Fix GUI blit
-//	        guiGraphics.blit(this.getX(), this.getY(), 0, 0, this.width, this.height, this.width, this.height);
-	        
+			// TODO (1.20.1): Fix GUI blit. Since this texture is a dynamic texture don't hold a ResourceLocation. The new blit can't handle it. Have to copy the innerBlit.
+	        // guiGraphics.blit(this.getX(), this.getY(), 0, 0, this.width, this.height, this.width, this.height);
+
 //	        updateLegend(mx, my);
 	//
 //	        renderLegend(matrixStack, mx, my, labels, values, x, y + width, 10, 0xFFFFFF);
@@ -265,11 +263,11 @@ public abstract class PresetEditorPage extends BisectedPage<PresetConfigScreen, 
 //	            drawCenteredString(matrixStack, renderer, hoveredCoords, mx, my - 10, 0xFFFFFF);
 //	        }
 	    }
-	
+
 	    private int getZoom() {
 	        return NoiseUtil.round(1.5F * (101 - (float) PresetEditorPage.this.zoom.getLerpedValue()));
 	    }
-	
+
 //	    private static String getTerrainName(Cell cell) {
 //	        if (cell.terrain.isRiver()) {
 //	            return "river";

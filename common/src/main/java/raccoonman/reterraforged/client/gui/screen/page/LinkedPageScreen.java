@@ -17,27 +17,27 @@ public abstract class LinkedPageScreen extends Screen {
 				  cancelButton,
 				  doneButton;
 	protected Page currentPage;
-	
+
 	protected LinkedPageScreen() {
 		super(CommonComponents.EMPTY);
 	}
-	
+
 	public void setPage(Page page) {
 		this.currentPage.onClose();
 		this.currentPage = page;
 		this.rebuildWidgets();
 	}
-	
+
 	@Override
 	public void init() {
 		super.init();
-		
+
 		int buttonsCenter = this.width / 2;
         int buttonWidth = 50;
         int buttonHeight = 20;
         int buttonPad = 2;
         int buttonsRow = this.height - 25;
-       
+
 		this.previousButton = Button.builder(Component.literal("<<"), (b) -> {
 			this.currentPage.previous().ifPresent(this::setPage);
 		}).bounds(buttonsCenter - (buttonWidth * 2 + (buttonPad * 3)), buttonsRow, buttonWidth, buttonHeight).build();
@@ -47,7 +47,7 @@ public abstract class LinkedPageScreen extends Screen {
 			this.currentPage.next().ifPresent(this::setPage);
 		}).bounds(buttonsCenter + buttonWidth + (buttonPad * 3), buttonsRow, buttonWidth, buttonHeight).build();
 		this.nextButton.active = this.currentPage.next().isPresent();
-		
+
 		this.cancelButton = Button.builder(CommonComponents.GUI_CANCEL, (b) -> {
 			this.onClose();
 		}).bounds(buttonsCenter - buttonWidth - buttonPad, buttonsRow, buttonWidth, buttonHeight).build();
@@ -56,7 +56,7 @@ public abstract class LinkedPageScreen extends Screen {
 			this.onDone();
 			this.onClose();
 		}).bounds(buttonsCenter + buttonPad, buttonsRow, buttonWidth, buttonHeight).build();
-		
+
 		this.currentPage.init();
 
 		// these must be overlayed onto the current page
@@ -69,32 +69,32 @@ public abstract class LinkedPageScreen extends Screen {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int i, int j, float f) {
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		super.renderBackground(guiGraphics);
-		super.render(guiGraphics, i, j, f);
+		super.render(guiGraphics, mouseX, mouseY, partialTick);
 	}
-	
+
 	@Override
 	public void onClose() {
 		this.currentPage.onClose();
 	}
-	
+
 	public void onDone() {
 		this.currentPage.onDone();
 	}
-	
+
 	public interface Page {
 		Component title();
-		
+
 		void init();
-		
+
 		Optional<Page> previous();
-		
+
 		Optional<Page> next();
-		
+
 		default void onClose() {
 		}
-		
+
 		default void onDone() {
 		}
 	}
