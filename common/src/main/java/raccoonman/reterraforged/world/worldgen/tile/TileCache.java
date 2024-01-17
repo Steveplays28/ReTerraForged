@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import raccoonman.reterraforged.concurrent.cache.Cache;
 import raccoonman.reterraforged.concurrent.cache.CacheEntry;
 import raccoonman.reterraforged.concurrent.cache.CacheManager;
+import raccoonman.reterraforged.world.worldgen.tile.generation.TileGenerator;
 import raccoonman.reterraforged.world.worldgen.util.PosUtil;
 
 public class TileCache implements TileFactory {
@@ -54,6 +55,7 @@ public class TileCache implements TileFactory {
 	@Override
 	public void drop(int tileX, int tileZ) {
 		long packedTilePos = PosUtil.pack(tileX, tileZ);
+		//TODO i dont think get should be able to return null here
 		CacheEntry<Entry> entry = this.cache.get(packedTilePos);
 		if(entry != null && entry.get().drop()) {
 			this.cache.remove(packedTilePos);
@@ -77,7 +79,7 @@ public class TileCache implements TileFactory {
 		private Tile tile;
 		
 		public Entry(Tile tile) {
-			int tileSize = tile.getChunkSize().size();
+			int tileSize = tile.getChunksSize().size();
 			this.refCount = new AtomicInteger();
 			this.chunkCount = tileSize * tileSize;
 			this.tile = tile;

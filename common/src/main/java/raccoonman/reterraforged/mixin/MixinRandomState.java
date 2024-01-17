@@ -26,12 +26,12 @@ import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import raccoonman.reterraforged.RTFCommon;
 import raccoonman.reterraforged.concurrent.ThreadPools;
 import raccoonman.reterraforged.config.PerformanceConfig;
-import raccoonman.reterraforged.data.export.preset.PresetData;
-import raccoonman.reterraforged.data.preset.Preset;
+import raccoonman.reterraforged.data.worldgen.preset.settings.WorldPreset;
 import raccoonman.reterraforged.integration.terrablender.TBClimateSampler;
 import raccoonman.reterraforged.integration.terrablender.TBIntegration;
 import raccoonman.reterraforged.integration.terrablender.TBNoiseRouterData;
 import raccoonman.reterraforged.registries.RTFRegistries;
+import raccoonman.reterraforged.tags.RTFDensityFunctionTags;
 import raccoonman.reterraforged.world.worldgen.GeneratorContext;
 import raccoonman.reterraforged.world.worldgen.RTFRandomState;
 import raccoonman.reterraforged.world.worldgen.densityfunction.CellSampler;
@@ -55,7 +55,7 @@ class MixinRandomState {
 	@Nullable
 	private GeneratorContext generatorContext;
 	@Nullable
-	private Preset preset;
+	private WorldPreset preset;
 	
 	private long seed;
 	
@@ -92,9 +92,13 @@ class MixinRandomState {
 	}
 
 	public void reterraforged$RTFRandomState$initialize(RegistryAccess registries) {
-		RegistryLookup<Preset> presets = registries.lookupOrThrow(RTFRegistries.PRESET);
+		RegistryLookup<WorldPreset> presets = registries.lookupOrThrow(RTFRegistries.PRESET);
 		RegistryLookup<Noise> noises = registries.lookupOrThrow(RTFRegistries.NOISE);
 		RegistryLookup<DensityFunction> functions = registries.lookupOrThrow(Registries.DENSITY_FUNCTION);
+
+		functions.get(RTFDensityFunctionTags.ADDITIONAL_NOISE_ROUTER_FUNCTIONS).ifPresent((set) -> {
+			set.forEach((function) -> function.value().mapAll(this.densityFunctionWrapper));
+		});
 		
 		if((Object) this.sampler instanceof TBClimateSampler tbClimateSampler && TBIntegration.isEnabled()) {
 			functions.get(TBNoiseRouterData.UNIQUENESS).ifPresent((uniqueness) -> {
@@ -102,20 +106,20 @@ class MixinRandomState {
 			});
 		}
 		
-		presets.get(PresetData.PRESET).ifPresent((presetHolder) -> {
+		presets.get(WorldPreset.KEY).ifPresent((presetHolder) -> {
 			this.preset = presetHolder.value();
 
 			if(this.hasContext) {
 				PerformanceConfig config = PerformanceConfig.read(PerformanceConfig.DEFAULT_FILE_PATH)
 					.resultOrPartial(RTFCommon.LOGGER::error)
 					.orElseGet(PerformanceConfig::makeDefault);
-				this.generatorContext = GeneratorContext.makeCached(this.preset, (int) this.seed, config.tileSize(), config.batchCount(), ThreadPools.availableProcessors() > 4);
+				this.generatorContext = GeneratorContext.makeCached(this.preset, noises, (int) this.seed, config.tileSize(), config.batchCount(), ThreadPools.availableProcessors() > 4);
 			}
 		});
 	}
 	
 	@Nullable
-	public Preset reterraforged$RTFRandomState$preset() {
+	public WorldPreset reterraforged$RTFRandomState$preset() {
 		return this.preset;
 	}
 	
@@ -129,7 +133,7 @@ class MixinRandomState {
 		return function.mapAll(this.densityFunctionWrapper);
 	}
 
-	public Noise reterraforged$RTFRandomState$wrap(Noise noise) {
+	public Noise reterraforged$RTFRandomState$seed(Noise noise) {
 		return Noises.shiftSeed(noise, (int) this.seed);
 	}
 }

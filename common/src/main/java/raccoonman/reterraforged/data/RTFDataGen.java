@@ -21,17 +21,18 @@ import net.minecraft.world.level.block.Blocks;
 import raccoonman.reterraforged.RTFCommon;
 import raccoonman.reterraforged.client.data.RTFLanguageProvider;
 import raccoonman.reterraforged.client.data.RTFTranslationKeys;
-import raccoonman.reterraforged.data.export.preset.PresetConfiguredFeatures;
-import raccoonman.reterraforged.data.export.preset.tags.PresetBiomeTagsProvider;
-import raccoonman.reterraforged.data.export.preset.tags.PresetBlockTagsProvider;
-import raccoonman.reterraforged.data.preset.Preset;
+import raccoonman.reterraforged.data.worldgen.preset.PresetConfiguredFeatures;
+import raccoonman.reterraforged.data.worldgen.preset.settings.WorldPreset;
+import raccoonman.reterraforged.data.worldgen.preset.tags.PresetBiomeTagsProvider;
+import raccoonman.reterraforged.data.worldgen.preset.tags.PresetBlockTagsProvider;
+import raccoonman.reterraforged.data.worldgen.preset.tags.PresetDensityFunctionTagsProvider;
 import raccoonman.reterraforged.platform.DataGenUtil;
 import raccoonman.reterraforged.world.worldgen.feature.RTFFeatures;
 import raccoonman.reterraforged.world.worldgen.feature.SwampSurfaceFeature;
 
 public class RTFDataGen {
 	public static final String DATAPACK_PATH = "data/reterraforged/datapacks";
-	
+
 	public static void generateResourcePacks(ResourcePackFactory resourcePackFactory) {
 		DataGenerator.PackGenerator pack = resourcePackFactory.createPack();
 
@@ -40,9 +41,12 @@ public class RTFDataGen {
 	}
 
 	public static void generateDataPacks(DataPackFactory builtInPackFactory) {
+//		DataGenerator.PackGenerator defaultPack = builtInPackFactory.createPack(RTFCommon.location("default"));
+//		defaultPack.addProvider((PackOutput output) -> PackMetadataGenerator.forFeaturePack(output, Component.translatable(RTFTranslationKeys.METADATA_DESCRIPTION)));
+//
 		generateMudSwamps(builtInPackFactory.createPack(RTFCommon.location("mud_swamps")));
 	}
-	
+
 	private static void generateMudSwamps(DataGenerator.PackGenerator generator) {
 		HolderLookup.Provider lookupProvider = VanillaRegistries.createLookup();
 		CompletableFuture<HolderLookup.Provider> lookup = CompletableFuture.supplyAsync(() -> {
@@ -59,18 +63,21 @@ public class RTFDataGen {
 			return PackMetadataGenerator.forFeaturePack(output, Component.translatable(RTFTranslationKeys.MUD_SWAMPS_METADATA_DESCRIPTION));
 		});
 	}
-	
+
 	@Deprecated
-	public static DataGenerator makePreset(Preset preset, RegistryAccess registryAccess, Path dataGenPath, Path dataGenOutputPath) {
+	public static DataGenerator makePreset(WorldPreset preset, RegistryAccess registryAccess, Path dataGenPath, Path dataGenOutputPath, String presetName) {
 		DataGenerator dataGenerator = new DataGenerator(dataGenPath, SharedConstants.getCurrentVersion(), true);
-		PackGenerator packGenerator = dataGenerator.new PackGenerator(true, "preset", new PackOutput(dataGenOutputPath));
+		PackGenerator packGenerator = dataGenerator.new PackGenerator(true, presetName, new PackOutput(dataGenOutputPath));
 		CompletableFuture<HolderLookup.Provider> lookup = CompletableFuture.supplyAsync(() -> preset.buildPatch(registryAccess));
 		
 		packGenerator.addProvider((output) -> {
 			return DataGenUtil.createRegistryProvider(output, lookup);
 		});
 		packGenerator.addProvider((output) -> {
-			return new PresetBlockTagsProvider(output, lookup);
+			return new PresetDensityFunctionTagsProvider(output, lookup);
+		});
+		packGenerator.addProvider((output) -> {
+			return new PresetBlockTagsProvider(preset, output, lookup);
 		});
 		packGenerator.addProvider((output) -> {
 			return new PresetBiomeTagsProvider(preset, output, CompletableFuture.completedFuture(registryAccess));
@@ -80,11 +87,11 @@ public class RTFDataGen {
 		});
 		return dataGenerator;
 	}
-	
+
 	public interface ResourcePackFactory {
 		DataGenerator.PackGenerator createPack();
 	}
-	
+
 	public interface DataPackFactory {
 		DataGenerator.PackGenerator createPack(ResourceLocation id);
 	}

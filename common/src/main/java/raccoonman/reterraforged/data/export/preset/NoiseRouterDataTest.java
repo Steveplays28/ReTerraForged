@@ -1,7 +1,7 @@
 /*
  * Decompiled with CFR 0.2.1 (FabricMC 53fa44c9).
  */
-package raccoonman.reterraforged.data.export.preset;
+package raccoonman.reterraforged.data.worldgen.preset;
 
 import java.util.stream.Stream;
 import net.minecraft.core.Holder;

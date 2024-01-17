@@ -7,20 +7,22 @@ import org.jetbrains.annotations.Nullable;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.util.StringRepresentable;
-import raccoonman.reterraforged.data.preset.WorldSettings.ControlPoints;
+import raccoonman.reterraforged.data.worldgen.preset.settings.WorldSettings.ControlPoints;
 import raccoonman.reterraforged.world.worldgen.GeneratorContext;
 import raccoonman.reterraforged.world.worldgen.biome.Continentalness;
 import raccoonman.reterraforged.world.worldgen.cell.Cell;
+import raccoonman.reterraforged.world.worldgen.cell.heightmap.Heightmap;
+import raccoonman.reterraforged.world.worldgen.cell.heightmap.Levels;
+import raccoonman.reterraforged.world.worldgen.cell.heightmap.WorldLookup;
+import raccoonman.reterraforged.world.worldgen.cell.terrain.TerrainCategory;
+import raccoonman.reterraforged.world.worldgen.cell.terrain.TerrainType;
 import raccoonman.reterraforged.world.worldgen.densityfunction.CellSampler.Field;
-import raccoonman.reterraforged.world.worldgen.heightmap.Heightmap;
-import raccoonman.reterraforged.world.worldgen.heightmap.Levels;
-import raccoonman.reterraforged.world.worldgen.heightmap.WorldLookup;
 import raccoonman.reterraforged.world.worldgen.noise.NoiseUtil;
-import raccoonman.reterraforged.world.worldgen.terrain.TerrainCategory;
 import raccoonman.reterraforged.world.worldgen.tile.Tile;
 import raccoonman.reterraforged.world.worldgen.util.PosUtil;
 
@@ -68,10 +70,10 @@ public record CellSampler(Supplier<GeneratorContext> generatorContext, Field fie
 	public class CacheChunk implements MarkerFunction.Mapped {
 		@Nullable
 		private Tile.Chunk chunk;
-		private Cache2d cache2d;
+		private Long2ObjectOpenHashMap<Cell> cache2d;
 		private int chunkX, chunkZ;
 
-		public CacheChunk(@Nullable Tile.Chunk chunk, Cache2d cache2d, int chunkX, int chunkZ) {
+		public CacheChunk(@Nullable Tile.Chunk chunk, Long2ObjectOpenHashMap<Cell> cache2d, int chunkX, int chunkZ) {
 			this.chunk = chunk;
 			this.cache2d = cache2d;
 			this.chunkX = chunkX;
@@ -86,11 +88,23 @@ public record CellSampler(Supplier<GeneratorContext> generatorContext, Field fie
 			int chunkZ = SectionPos.blockToSectionCoord(blockZ);
 			int quartBlockX = QuartPos.toBlock(QuartPos.fromBlock(blockX));
 			int quartBlockZ = QuartPos.toBlock(QuartPos.fromBlock(blockZ));
-			
+
 			WorldLookup worldLookup = CellSampler.this.generatorContext.get().lookup;
 			Cell cell = (this.chunk != null && this.chunkX == chunkX && this.chunkZ == chunkZ) ? 
 				this.chunk.getCell(blockX, blockZ) :
-				this.cache2d.getAndUpdate(worldLookup, quartBlockX, quartBlockZ);
+				this.cache2d.computeIfAbsent(PosUtil.pack(quartBlockX, quartBlockZ), (k) -> {
+					GeneratorContext generatorCtx = CellSampler.this.generatorContext.get();
+					@Nullable
+					Tile tile = generatorCtx.cache.provideAtChunkIfPresent(chunkX, chunkZ);
+					if(tile != null) {
+						return tile.lookup(quartBlockX, quartBlockZ);
+					}
+
+					Cell newCell = new Cell();
+					CellSampler.this.generatorContext.get().lookup.applyCell(newCell, quartBlockX, quartBlockZ);
+//					System.out.println(this.cache2d.size() + 1);
+					return newCell;
+				});
 			return CellSampler.this.field.read(cell, worldLookup.getHeightmap());
 		}
 
@@ -138,6 +152,10 @@ public record CellSampler(Supplier<GeneratorContext> generatorContext, Field fie
 				float coast = controlPoints.coast;
 				float inland = controlPoints.inland;
 				
+				if(cell.terrain == TerrainType.MUSHROOM_FIELDS) {
+					return Continentalness.MUSHROOM_FIELDS.mid();
+				}
+				
 				if(cell.terrain.isDeepOcean()) {
 					float alpha = NoiseUtil.clamp(cell.continentEdge, 0.0F, deepOcean);
 					alpha = NoiseUtil.lerp(alpha, 0.0F, deepOcean, 0.0F, 1.0F);
@@ -155,8 +173,8 @@ public record CellSampler(Supplier<GeneratorContext> generatorContext, Field fie
 					alpha = NoiseUtil.lerp(alpha, shallowOcean, beach, 0.0F, 1.0F);
 					return NoiseUtil.lerp(Continentalness.COAST.min(), Continentalness.COAST.max(), alpha);
 				}
-
-				return NoiseUtil.lerp(Continentalness.NEAR_INLAND.min(), Continentalness.FAR_INLAND.max(), cell.continentEdge * 0.75F);
+			
+				return NoiseUtil.lerp(Continentalness.NEAR_INLAND.min(), Continentalness.FAR_INLAND.max(), (cell.continentalness / 3.0F + 0.1F));
 			}
 		},
 		EROSION("erosion") {
@@ -201,11 +219,11 @@ public record CellSampler(Supplier<GeneratorContext> generatorContext, Field fie
 				return cell.gradient;
 			}
 		},
-		LOCAL_EROSION("local_erosion") {
+		HEIGHT_EROSION("height_erosion") {
 			
 			@Override
 			public float read(Cell cell, Heightmap heightmap) {
-				return cell.localErosion;
+				return cell.heightErosion;
 			}
 		},
 		SEDIMENT("sediment") {

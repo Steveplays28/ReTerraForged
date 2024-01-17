@@ -28,12 +28,12 @@ import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfigur
 import raccoonman.reterraforged.world.worldgen.GeneratorContext;
 import raccoonman.reterraforged.world.worldgen.RTFRandomState;
 import raccoonman.reterraforged.world.worldgen.cell.Cell;
+import raccoonman.reterraforged.world.worldgen.cell.heightmap.Levels;
+import raccoonman.reterraforged.world.worldgen.cell.terrain.TerrainType;
 import raccoonman.reterraforged.world.worldgen.feature.ErodeSnowFeature.Config;
-import raccoonman.reterraforged.world.worldgen.heightmap.Levels;
 import raccoonman.reterraforged.world.worldgen.noise.NoiseUtil;
 import raccoonman.reterraforged.world.worldgen.noise.module.Noise;
 import raccoonman.reterraforged.world.worldgen.noise.module.Noises;
-import raccoonman.reterraforged.world.worldgen.terrain.TerrainType;
 import raccoonman.reterraforged.world.worldgen.tile.Tile;
 
 public class ErodeSnowFeature extends Feature<Config> {
@@ -58,7 +58,7 @@ public class ErodeSnowFeature extends Feature<Config> {
 			int chunkZ = chunkPos.z;
 			ChunkAccess chunk = level.getChunk(chunkX, chunkZ);
 			Tile.Chunk tileChunk = generatorContext.cache.provideAtChunk(chunkX, chunkZ).getChunkReader(chunkX, chunkZ);
-			raccoonman.reterraforged.world.worldgen.heightmap.Heightmap heightmap = generatorContext.generator.getHeightmap();
+			raccoonman.reterraforged.world.worldgen.cell.heightmap.Heightmap heightmap = generatorContext.generator.getHeightmap();
 			Levels levels = heightmap.levels();
 			Noise rand = Noises.white(heightmap.climate().randomSeed(), 1);
 			BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
@@ -83,7 +83,7 @@ public class ErodeSnowFeature extends Feature<Config> {
 					            float vModifier = cell.terrain == TerrainType.VOLCANO ? 0.15F : 0F;
 					            float height = cell.height;// + var + hNoise + vModifier;
 					            float steepness = cell.gradient;// + var + sNoise + vModifier;
-					            
+
 					            if (snowErosion(config, worldX, worldZ, steepness, height)) {
 					                Predicate<BlockState> predicate = Heightmap.Types.MOTION_BLOCKING.isOpaque();
 					                for (int dy = 2; dy > 0; dy--) {
@@ -124,7 +124,7 @@ public class ErodeSnowFeature extends Feature<Config> {
 
     private static boolean snowErosion(Config config, float x, float z, float steepness, float height) {
     	ErodeFeature.Config erodeConfig = config.erodeConfig();
-        return /*steepness > erodeConfig.rockSteepness() ||*/ (steepness * 0.55F > config.steepness());// && height > config.height() || (steepness > erodeConfig.dirtSteepness() && height > ColumnDecorator.sampleNoise(x, z, erodeConfig.dirtVar(), erodeConfig.dirtMin()));
+        return /*steepness > erodeConfig.rockSteepness() ||*/ (steepness * 0.455F > config.steepness());// && height > config.height() || (steepness > erodeConfig.dirtSteepness() && height > ColumnDecorator.sampleNoise(x, z, erodeConfig.dirtVar(), erodeConfig.dirtMin()));
     }
 
     private static void erodeSnow(ChunkAccess chunk, BlockPos.MutableBlockPos pos) {

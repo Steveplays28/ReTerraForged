@@ -9,14 +9,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -31,11 +28,11 @@ import raccoonman.reterraforged.tags.RTFBlockTags;
 import raccoonman.reterraforged.world.worldgen.GeneratorContext;
 import raccoonman.reterraforged.world.worldgen.RTFRandomState;
 import raccoonman.reterraforged.world.worldgen.cell.Cell;
+import raccoonman.reterraforged.world.worldgen.cell.heightmap.Levels;
+import raccoonman.reterraforged.world.worldgen.cell.terrain.TerrainType;
 import raccoonman.reterraforged.world.worldgen.feature.ErodeFeature.Config;
-import raccoonman.reterraforged.world.worldgen.heightmap.Levels;
 import raccoonman.reterraforged.world.worldgen.noise.module.Noise;
 import raccoonman.reterraforged.world.worldgen.noise.module.Noises;
-import raccoonman.reterraforged.world.worldgen.terrain.TerrainType;
 import raccoonman.reterraforged.world.worldgen.tile.Tile;
 
 public class ErodeFeature extends Feature<Config> {
@@ -58,7 +55,7 @@ public class ErodeFeature extends Feature<Config> {
 			ChunkGenerator generator = placeContext.chunkGenerator();
 			ChunkAccess chunk = level.getChunk(chunkX, chunkZ);
 			Tile.Chunk tileChunk = generatorContext.cache.provideAtChunk(chunkX, chunkZ).getChunkReader(chunkX, chunkZ);
-			raccoonman.reterraforged.world.worldgen.heightmap.Heightmap heightmap = generatorContext.generator.getHeightmap();
+			raccoonman.reterraforged.world.worldgen.cell.heightmap.Heightmap heightmap = generatorContext.generator.getHeightmap();
 			Levels levels = heightmap.levels();
 			Noise rand = Noises.white(heightmap.climate().randomSeed(), 1);
 			Noise desertErosionVariance = makeDesertErosionVariance(levels);
@@ -82,7 +79,7 @@ public class ErodeFeature extends Feature<Config> {
 					}
 			        if(surfaceY <= scaledY && surfaceY >= generator.getSeaLevel() - 1 && !biome.is(Biomes.WOODED_BADLANDS) && !biome.is(Biomes.BADLANDS)) {
 						erodeColumn(config, rand, generator, chunk, cell, pos, surfaceY, biome);
-						//remove any vegetation that may have leaked from other chunks
+						//remove any stuff that may have leaked from other chunks
 						pos.setY(surfaceY);
 						while(!level.getBlockState(pos.move(Direction.UP)).canSurvive(level, pos)) {
 							level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
@@ -95,8 +92,8 @@ public class ErodeFeature extends Feature<Config> {
 			throw new IllegalStateException();
 		}
 	}
-
-	//TODO move this to surface rules
+	
+	// TODO expose this to config
 	@Deprecated(forRemoval = true)
 	private static Noise makeDesertErosionVariance(Levels levels) {
 		Noise noise = Noises.perlin(435, 8, 1);
@@ -104,7 +101,6 @@ public class ErodeFeature extends Feature<Config> {
 	}
 	
 	// TODO ^
-	@Deprecated(forRemoval = true)
 	private static void erodeDesert(Noise variance, Levels levels, ChunkAccess chunk, Cell cell, BlockPos.MutableBlockPos pos, int surfaceY) {
 		float min = levels.ground(10);
 		float threshold = levels.ground(40);
@@ -120,7 +116,7 @@ public class ErodeFeature extends Feature<Config> {
         float value = cell.height + variance.compute(pos.getX(), pos.getZ(), 0);
         if (cell.gradient > 0.3F || value > threshold) {
             BlockState state = Blocks.SMOOTH_SANDSTONE.defaultBlockState();
-            
+
             if (value > threshold) {
                 if (cell.gradient > 0.975) {
                     state = Blocks.TERRACOTTA.defaultBlockState();
@@ -153,11 +149,11 @@ public class ErodeFeature extends Feature<Config> {
         	if((top.is(Blocks.SNOW_BLOCK) || top.is(Blocks.POWDER_SNOW)) && cell.gradient < 0.45F) {
         		return;
         	}
-        	
+
             BlockState material = getMaterial(config, rand, chunk, cell, pos, top, generator instanceof NoiseBasedChunkGenerator noiseChunkGenerator ? noiseChunkGenerator.generatorSettings().value().defaultBlock() : Blocks.STONE.defaultBlockState(), biome);
             if (material != top) {
-                if (material.is(config.rockTag())) {
-                	erodeRock(config, chunk, cell, pos, surfaceY);
+                if (material.is(RTFBlockTags.ROCK)) {
+                	erodeRock(chunk, cell, pos, surfaceY);
                     return;
                 } else {
                     ColumnDecorator.fillDownSolid(chunk, pos, surfaceY, surfaceY - 4, material);
@@ -167,14 +163,14 @@ public class ErodeFeature extends Feature<Config> {
         }
 	}
 
-    private static void erodeRock(Config config, ChunkAccess chunk, Cell cell, BlockPos.MutableBlockPos pos, int y) {
+    private static void erodeRock(ChunkAccess chunk, Cell cell, BlockPos.MutableBlockPos pos, int y) {
         int depth = 32;
         BlockState material = Blocks.GRAVEL.defaultBlockState();
         // find the uppermost layer of rock & record it's depth
         for (int dy = 3; dy < 32; dy++) {
             pos.setY(y - dy);
             BlockState state = chunk.getBlockState(pos);
-            if (state.is(config.rockTag())) {
+            if (state.is(RTFBlockTags.ROCK)) {
                 material = state;
                 depth = dy + 1;
                 break;
@@ -246,9 +242,8 @@ public class ErodeFeature extends Feature<Config> {
         return Blocks.COARSE_DIRT.defaultBlockState();
     }
 
-    public record Config(TagKey<Block> rockTag, int rockVar, int rockMin, int dirtVar, int dirtMin, float rockSteepness, float dirtSteepness, float screeSteepness, float heightModifier, float slopeModifier, float sedimentModifier, float sedimentNoise, float screeValue) implements FeatureConfiguration {
+    public record Config(int rockVar, int rockMin, int dirtVar, int dirtMin, float rockSteepness, float dirtSteepness, float screeSteepness, float heightModifier, float slopeModifier, float sedimentModifier, float sedimentNoise, float screeValue) implements FeatureConfiguration {
 		public static final Codec<Config> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-			TagKey.codec(Registries.BLOCK).fieldOf("rock_tag").forGetter(Config::rockTag),
 			Codec.INT.fieldOf("rock_var").forGetter(Config::rockVar),
 			Codec.INT.fieldOf("rock_min").forGetter(Config::rockMin),
 			Codec.INT.fieldOf("dirt_var").forGetter(Config::dirtVar),
