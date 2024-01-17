@@ -1,5 +1,7 @@
 package raccoonman.reterraforged.world.worldgen.surface.rule;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.mojang.datafixers.util.Pair;
@@ -24,7 +26,7 @@ record NoiseRule(Holder<Noise> noise, List<Pair<Float, SurfaceRules.RuleSource>>
 	public Rule apply(Context ctx) {
 		return new Rule(this.noise.value(), this.rules.stream().map((pair) -> {
 			return Pair.of(pair.getFirst(), pair.getSecond().apply(ctx));
-		}).sorted((p1, p2) -> p2.getFirst().compareTo(p1.getFirst())).toList());
+		}).toList());
 	}
 
 	@Override
@@ -47,8 +49,10 @@ record NoiseRule(Holder<Noise> noise, List<Pair<Float, SurfaceRules.RuleSource>>
 		
 		public Rule(Noise noise, List<Pair<Float, SurfaceRules.SurfaceRule>> rules) {
 			this.noise = noise;
-			this.rules = rules;
+			this.rules = new ArrayList<>(rules);
 			this.lastPos = Long.MIN_VALUE;
+
+			Collections.sort(this.rules, (p1, p2) -> p2.getFirst().compareTo(p1.getFirst()));
 		}
 
 		@Override
