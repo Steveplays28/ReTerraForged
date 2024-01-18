@@ -31,7 +31,7 @@ public class BuiltinPresets {
 			new ClimateSettings(
 				new RangeValue(0, 6, 2, 0.0F, 0.98F, 0.05F), 
 				new RangeValue(0, 6, 1, 0.0F, 1.0F, 0.0F), 
-				new BiomeShape(225, 8, 150, 80),
+				new BiomeShape(785, 8, 150, 80),
 				new BiomeNoise(ClimateSettings.BiomeNoise.EdgeType.SIMPLEX, 24, 2, 0.5F, 2.65F, 14)
 			), 
 			new TerrainSettings(
