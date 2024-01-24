@@ -1,4 +1,4 @@
-package raccoonman.reterraforged.data.worldgen.preset.tags;
+package raccoonman.reterraforged.data.export.preset.tags;
 
 import java.util.concurrent.CompletableFuture;
 

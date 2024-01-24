@@ -1,4 +1,4 @@
-package raccoonman.reterraforged.data.worldgen.preset.tags;
+package raccoonman.reterraforged.data.export.preset.tags;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -9,8 +9,8 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
-import raccoonman.reterraforged.data.worldgen.preset.settings.MiscellaneousSettings;
-import raccoonman.reterraforged.data.worldgen.preset.settings.Preset;
+import raccoonman.reterraforged.data.preset.MiscellaneousSettings;
+import raccoonman.reterraforged.data.preset.Preset;
 import raccoonman.reterraforged.tags.RTFBiomeTags;
 
 public class PresetBiomeTagsProvider extends TagsProvider<Biome> {

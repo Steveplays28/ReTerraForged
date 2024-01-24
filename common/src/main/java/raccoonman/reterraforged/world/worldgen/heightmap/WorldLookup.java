@@ -1,8 +1,11 @@
-package raccoonman.reterraforged.world.worldgen.cell.heightmap;
+package raccoonman.reterraforged.world.worldgen.heightmap;
 
+import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.world.level.levelgen.NoiseSettings;
 import raccoonman.reterraforged.world.worldgen.GeneratorContext;
 import raccoonman.reterraforged.world.worldgen.cell.Cell;
-import raccoonman.reterraforged.world.worldgen.cell.terrain.TerrainType;
+import raccoonman.reterraforged.world.worldgen.terrain.TerrainType;
 import raccoonman.reterraforged.world.worldgen.tile.Tile;
 import raccoonman.reterraforged.world.worldgen.tile.TileCache;
 
@@ -23,6 +26,21 @@ public class WorldLookup {
 	
 	public Heightmap getHeightmap() {
 		return this.heightmap;
+	}
+	
+	public int getGenerationHeight(int chunkX, int chunkZ, NoiseSettings noiseSettings, boolean load) {
+		int minY = noiseSettings.minY();
+		int genHeight = noiseSettings.height();
+		int cellHeight = noiseSettings.getCellHeight();
+		
+		@Nullable
+		Tile tile = load ? this.cache.provideAtChunk(chunkX, chunkZ) : this.cache.provideAtChunkIfPresent(chunkX, chunkZ);
+		if(tile != null) {
+			Tile.Chunk chunk = tile.getChunkReader(chunkX, chunkZ);
+			return Math.min(genHeight, ((-minY + this.levels.scale(Math.max(this.levels.ground, chunk.getGenerationHeight()))) / cellHeight + 1) * cellHeight);
+		} else {
+			return genHeight;
+		}
 	}
 
 	public boolean applyCell(Cell cell, int x, int z) {

@@ -1,4 +1,4 @@
-package raccoonman.reterraforged.world.worldgen.cell.terrain.provider;
+package raccoonman.reterraforged.world.worldgen.terrain.provider;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,34 +6,30 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.BiFunction;
 
-import net.minecraft.core.HolderGetter;
-import raccoonman.reterraforged.data.worldgen.preset.PresetNoiseData;
-import raccoonman.reterraforged.data.worldgen.preset.PresetTerrainTypeNoise;
-import raccoonman.reterraforged.data.worldgen.preset.settings.MiscellaneousSettings;
-import raccoonman.reterraforged.data.worldgen.preset.settings.TerrainSettings;
+import raccoonman.reterraforged.data.preset.MiscellaneousSettings;
+import raccoonman.reterraforged.data.preset.TerrainSettings;
 import raccoonman.reterraforged.world.worldgen.cell.CellPopulator;
-import raccoonman.reterraforged.world.worldgen.cell.heightmap.Levels;
-import raccoonman.reterraforged.world.worldgen.cell.heightmap.RegionConfig;
-import raccoonman.reterraforged.world.worldgen.cell.terrain.Terrain;
-import raccoonman.reterraforged.world.worldgen.cell.terrain.TerrainType;
-import raccoonman.reterraforged.world.worldgen.cell.terrain.populator.Populators;
-import raccoonman.reterraforged.world.worldgen.cell.terrain.populator.TerrainPopulator;
-import raccoonman.reterraforged.world.worldgen.cell.terrain.populator.VolcanoPopulator;
+import raccoonman.reterraforged.world.worldgen.heightmap.Levels;
+import raccoonman.reterraforged.world.worldgen.heightmap.RegionConfig;
 import raccoonman.reterraforged.world.worldgen.noise.module.Noise;
 import raccoonman.reterraforged.world.worldgen.noise.module.Noises;
+import raccoonman.reterraforged.world.worldgen.terrain.Terrain;
+import raccoonman.reterraforged.world.worldgen.terrain.TerrainType;
+import raccoonman.reterraforged.world.worldgen.terrain.populator.Populators;
+import raccoonman.reterraforged.world.worldgen.terrain.populator.TerrainPopulator;
+import raccoonman.reterraforged.world.worldgen.terrain.populator.VolcanoPopulator;
 import raccoonman.reterraforged.world.worldgen.util.Seed;
 
 public class TerrainProvider {
 	
+	//TODO reset all this to 1.16 and work from there
 	@Deprecated
-    public static List<CellPopulator> generateTerrain(Seed seed, TerrainSettings terrainSettings, MiscellaneousSettings miscellaneousSettings, RegionConfig config, Levels levels, HolderGetter<Noise> noiseLookup) {
+    public static List<CellPopulator> generateTerrain(Seed seed, TerrainSettings terrainSettings, MiscellaneousSettings miscellaneousSettings, RegionConfig config, Levels levels, Noise ground) {
     	TerrainSettings.General general = terrainSettings.general;
     	float verticalScale = general.globalVerticalScale;
     	boolean fancyMountains = general.fancyMountains;
     	boolean legacyWorldGen = general.legacyWorldGen;
     	Seed terrainSeed = seed.offset(general.terrainSeedOffset);
-    	
-    	Noise ground = PresetNoiseData.getNoise(noiseLookup, PresetTerrainTypeNoise.GROUND);
     	
     	List<TerrainPopulator> mixable = new ArrayList<>();
     	mixable.add(Populators.makeSteppe(terrainSeed, ground, terrainSettings.steppe));

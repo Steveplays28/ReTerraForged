@@ -128,7 +128,6 @@ public class Tile implements SafeCloseable, Filterable, CellLookup {
         return chunk;
     }
 	
-    @Deprecated
 	public class Chunk {
         private int chunkX;
         private int chunkZ;

@@ -1,19 +1,16 @@
-package raccoonman.reterraforged.world.worldgen.cell.climate;
+package raccoonman.reterraforged.world.worldgen.climate;
 
-import net.minecraft.core.HolderGetter;
-import raccoonman.reterraforged.data.worldgen.preset.PresetClimateNoise;
-import raccoonman.reterraforged.data.worldgen.preset.PresetNoiseData;
-import raccoonman.reterraforged.data.worldgen.preset.settings.ClimateSettings;
-import raccoonman.reterraforged.data.worldgen.preset.settings.Preset;
-import raccoonman.reterraforged.data.worldgen.preset.settings.WorldSettings;
+import raccoonman.reterraforged.data.preset.ClimateSettings;
+import raccoonman.reterraforged.data.preset.Preset;
+import raccoonman.reterraforged.data.preset.WorldSettings;
 import raccoonman.reterraforged.world.worldgen.GeneratorContext;
 import raccoonman.reterraforged.world.worldgen.cell.Cell;
-import raccoonman.reterraforged.world.worldgen.cell.continent.Continent;
-import raccoonman.reterraforged.world.worldgen.cell.heightmap.Levels;
-import raccoonman.reterraforged.world.worldgen.cell.terrain.TerrainType;
+import raccoonman.reterraforged.world.worldgen.continent.Continent;
+import raccoonman.reterraforged.world.worldgen.heightmap.Levels;
 import raccoonman.reterraforged.world.worldgen.noise.NoiseUtil;
 import raccoonman.reterraforged.world.worldgen.noise.module.Noise;
 import raccoonman.reterraforged.world.worldgen.noise.module.Noises;
+import raccoonman.reterraforged.world.worldgen.terrain.TerrainType;
 
 public record Climate(int randomSeed, Noise offsetX, Noise offsetZ, int offsetDistance, Levels levels, ClimateModule biomeNoise) {
 
@@ -38,8 +35,6 @@ public record Climate(int randomSeed, Noise offsetX, Noise offsetZ, int offsetDi
 	}
 	
 	public static Climate make(Continent continent, GeneratorContext context) {
-		HolderGetter<Noise> noiseLookup = context.noiseLookup;
-		
 		Preset preset = context.preset;
 		
 		WorldSettings worldSettings = preset.world();
@@ -49,7 +44,7 @@ public record Climate(int randomSeed, Noise offsetX, Noise offsetZ, int offsetDi
 		Levels levels = context.levels;
 		int randSeed = context.seed.next();
 		
-		Noise biomeEdgeShape = PresetNoiseData.getNoise(noiseLookup, PresetClimateNoise.BIOME_EDGE_SHAPE);
+		Noise biomeEdgeShape = climateSettings.biomeEdgeShape.build(0);
 		Noise offsetX = Noises.shiftSeed(biomeEdgeShape, context.seed.next());
 		Noise offsetZ = Noises.shiftSeed(biomeEdgeShape, context.seed.next());
 		int offsetDistance = climateSettings.biomeEdgeShape.strength;

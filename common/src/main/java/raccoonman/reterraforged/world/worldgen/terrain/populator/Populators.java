@@ -1,16 +1,11 @@
-package raccoonman.reterraforged.world.worldgen.cell.terrain.populator;
+package raccoonman.reterraforged.world.worldgen.terrain.populator;
 
-import dev.lukebemish.biomesquisher.BiomeSquisherRegistries;
-import dev.lukebemish.biomesquisher.Squisher;
-import dev.lukebemish.biomesquisher.impl.BiomeSquisher;
-import raccoonman.reterraforged.data.worldgen.preset.settings.MiscellaneousSettings;
-import raccoonman.reterraforged.data.worldgen.preset.settings.TerrainSettings;
+import raccoonman.reterraforged.data.export.preset.PresetPlacedFeatures;
+import raccoonman.reterraforged.data.preset.MiscellaneousSettings;
+import raccoonman.reterraforged.data.preset.TerrainSettings;
 import raccoonman.reterraforged.world.worldgen.biome.Erosion;
-import raccoonman.reterraforged.world.worldgen.biome.Weirdness;
 import raccoonman.reterraforged.world.worldgen.cell.CellPopulator;
-import raccoonman.reterraforged.world.worldgen.cell.heightmap.Levels;
-import raccoonman.reterraforged.world.worldgen.cell.terrain.Terrain;
-import raccoonman.reterraforged.world.worldgen.cell.terrain.TerrainType;
+import raccoonman.reterraforged.world.worldgen.heightmap.Levels;
 import raccoonman.reterraforged.world.worldgen.noise.domain.Domain;
 import raccoonman.reterraforged.world.worldgen.noise.domain.Domains;
 import raccoonman.reterraforged.world.worldgen.noise.function.DistanceFunction;
@@ -19,11 +14,11 @@ import raccoonman.reterraforged.world.worldgen.noise.function.Interpolation;
 import raccoonman.reterraforged.world.worldgen.noise.module.Erosion.BlendMode;
 import raccoonman.reterraforged.world.worldgen.noise.module.Noise;
 import raccoonman.reterraforged.world.worldgen.noise.module.Noises;
+import raccoonman.reterraforged.world.worldgen.terrain.Terrain;
+import raccoonman.reterraforged.world.worldgen.terrain.TerrainType;
 import raccoonman.reterraforged.world.worldgen.util.Seed;
 
 public class Populators {
-	@Deprecated
-	public static final Noise DEFAULT_WEIRDNESS = Weirdness.LOW_SLICE_NORMAL_DESCENDING.source();
 
 	public static CellPopulator makeDeepOcean(@Deprecated int seed, float seaLevel) {
 		Noise hills = Noises.perlin(++seed, 150, 3);
@@ -268,7 +263,7 @@ public class Populators {
 		Noise weirdness = Noises.boost(blend);
 		
 		Noise height = Noises.mul(weirdness, 0.5F);
-		return TerrainPopulator.make(TerrainType.HILLS, ground, height, Erosion.LEVEL_5.source(), Noises.add(weirdness, 0.1F), settings);
+		return TerrainPopulator.make(TerrainType.HILLS, ground, height, Erosion.LEVEL_5.source(), Noises.add(Noises.mul(weirdness, 0.5F), 0.1F), settings);
 	}
 
     private static final int MOUNTAINS_H = 610;
@@ -289,7 +284,7 @@ public class Populators {
 			weirdness = makeFancy(seed, weirdness);
 		}
 		weirdness = Noises.cache2d(weirdness);
-		return TerrainPopulator.make(terrainType, ground, Noises.mul(weirdness, (legacyScaling ? 0.7F : MOUNTAINS_V) * verticalScale), Erosion.LEVEL_1.source(), weirdness, terrainSettings);
+		return TerrainPopulator.make(terrainType, ground, Noises.mul(weirdness, (legacyScaling ? 0.7F : MOUNTAINS_V) * verticalScale), Noises.constant(-0.75F), Noises.add(Noises.mul(weirdness, 0.5F), 0.3F), terrainSettings);
 	}
 
 	public static TerrainPopulator makeMountains(@Deprecated Seed seed, Noise ground, TerrainSettings.Terrain terrainSettings, MiscellaneousSettings miscellaneousSettings, float verticalScale, boolean makeFancy, boolean legacyScaling) { 
@@ -312,15 +307,15 @@ public class Populators {
 		Noise surface = Noises.perlinRidge(seed.next(), 125, 4);
 		surface = Noises.alpha(surface, 0.37F);
 		
-		Noise height = Noises.clamp(cell, 0.0F, 1.0F);
-		height = Noises.mul(height, blur);
-		height = Noises.mul(height, surface);
-		height = Noises.pow(height, 1.1F);
+		Noise weirdness = Noises.clamp(cell, 0.0F, 1.0F);
+		weirdness = Noises.mul(weirdness, blur);
+		weirdness = Noises.mul(weirdness, surface);
+		weirdness = Noises.pow(weirdness, 1.1F);
 		if(makeFancy) { 
-			height = makeFancy(seed, height);
+			weirdness = makeFancy(seed, weirdness);
 		}
-		height = Noises.cache2d(height);
-		return TerrainPopulator.make(TerrainType.MOUNTAINS_2, ground, Noises.mul(height, 0.645F * verticalScale), Erosion.LEVEL_2.source(), Noises.clamp(Noises.mul(height, mountainUsage(miscellaneousSettings, -1.0F)), -0.76F, -0.08F), terrainSettings);
+		weirdness = Noises.cache2d(weirdness);
+		return TerrainPopulator.make(TerrainType.MOUNTAINS_2, ground, Noises.mul(weirdness, 0.645F * verticalScale), Noises.constant(-0.75F), Noises.add(weirdness, 0.1F), terrainSettings);
 	}
 	
     public static TerrainPopulator makeMountains3(@Deprecated Seed seed, Noise ground, TerrainSettings.Terrain terrainSettings, MiscellaneousSettings miscellaneousSettings, float verticalScale, boolean makeFancy, boolean legacyScaling) {
@@ -349,14 +344,15 @@ public class Populators {
     	
     	Noise slope = Noises.constant(0.45F);
     	
-    	Noise height = Noises.advancedTerrace(mountains, modulation, mask, slope, 0.20000000298023224F, 0.44999998807907104F, 24, 1);
+    	Noise weirdness = Noises.advancedTerrace(mountains, modulation, mask, slope, 0.20000000298023224F, 0.44999998807907104F, 24, 1);
     	if(makeFancy) {
-        	height = makeFancy(seed, height);
+        	weirdness = makeFancy(seed, weirdness);
     	}
-		height = Noises.cache2d(height);
-		return TerrainPopulator.make(TerrainType.MOUNTAINS_3, ground, Noises.mul(height, (legacyScaling ? 0.645F : MOUNTAINS3_V) * verticalScale), Erosion.LEVEL_1.source(), Noises.clamp(Noises.mul(height, mountainUsage(miscellaneousSettings, -1.0F)), -0.76F, -0.08F), terrainSettings);
+		weirdness = Noises.cache2d(weirdness);
+
+		return TerrainPopulator.make(TerrainType.MOUNTAINS_3, ground, Noises.mul(weirdness, (legacyScaling ? 0.645F : MOUNTAINS3_V) * verticalScale), Noises.constant(-0.75F), Noises.add(Noises.mul(weirdness, 0.5F), 0.35F), terrainSettings);
     }
-    
+
 	public static Noise makeFancy(@Deprecated Seed seed, Noise input) {
 		Domain domain = Domains.direction(
 			Noises.perlin(seed.next(), 10, 1),
@@ -371,7 +367,4 @@ public class Populators {
 		return makePlains(seed, ground, plainsSettings, steppeSettings, verticalScale);
 	}
 	
-	private static Noise mountainUsage(MiscellaneousSettings miscellaneousSettings, float peak) {
-		return Noises.constant(peak * (miscellaneousSettings.mountainBiomeUsage / 0.4F));
-	}
 }

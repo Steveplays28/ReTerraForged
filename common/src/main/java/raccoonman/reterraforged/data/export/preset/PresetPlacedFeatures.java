@@ -1,4 +1,4 @@
-package raccoonman.reterraforged.data.worldgen.preset;
+package raccoonman.reterraforged.data.export.preset;
 
 import java.util.List;
 
@@ -30,8 +30,8 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import net.minecraft.world.level.levelgen.placement.RarityFilter;
 import raccoonman.reterraforged.RTFCommon;
-import raccoonman.reterraforged.data.worldgen.preset.settings.MiscellaneousSettings;
-import raccoonman.reterraforged.data.worldgen.preset.settings.Preset;
+import raccoonman.reterraforged.data.preset.MiscellaneousSettings;
+import raccoonman.reterraforged.data.preset.Preset;
 import raccoonman.reterraforged.world.worldgen.feature.RTFFeatures;
 import raccoonman.reterraforged.world.worldgen.feature.placement.RTFPlacementModifiers;
 
@@ -143,7 +143,6 @@ public class PresetPlacedFeatures {
             PlacementUtils.register(ctx, BIRCH_SMALL, features.getOrThrow(PresetConfiguredFeatures.BIRCH_SMALL), PlacementUtils.filteredByBlockSurvival(Blocks.BIRCH_SAPLING));
             PlacementUtils.register(ctx, BIRCH_FOREST, features.getOrThrow(PresetConfiguredFeatures.BIRCH_FOREST), PlacementUtils.filteredByBlockSurvival(Blocks.BIRCH_SAPLING));
             PlacementUtils.register(ctx, BIRCH_LARGE, features.getOrThrow(PresetConfiguredFeatures.BIRCH_LARGE), PlacementUtils.filteredByBlockSurvival(Blocks.BIRCH_SAPLING));
-            PlacementUtils.register(ctx, ACACIA_BUSH, features.getOrThrow(PresetConfiguredFeatures.ACACIA_BUSH), PlacementUtils.filteredByBlockSurvival(Blocks.ACACIA_SAPLING));
             PlacementUtils.register(ctx, ACACIA_SMALL, features.getOrThrow(PresetConfiguredFeatures.ACACIA_SMALL), PlacementUtils.filteredByBlockSurvival(Blocks.ACACIA_SAPLING));
             PlacementUtils.register(ctx, ACACIA_LARGE, features.getOrThrow(PresetConfiguredFeatures.ACACIA_LARGE), PlacementUtils.filteredByBlockSurvival(Blocks.ACACIA_SAPLING));
             PlacementUtils.register(ctx, DARK_OAK_SMALL, features.getOrThrow(PresetConfiguredFeatures.DARK_OAK_SMALL), PlacementUtils.filteredByBlockSurvival(Blocks.DARK_OAK_SAPLING));
@@ -166,11 +165,12 @@ public class PresetPlacedFeatures {
             PlacementUtils.register(ctx, JUNGLE_LARGE, features.getOrThrow(PresetConfiguredFeatures.JUNGLE_LARGE), PlacementUtils.filteredByBlockSurvival(Blocks.JUNGLE_SAPLING));
             PlacementUtils.register(ctx, JUNGLE_HUGE, features.getOrThrow(PresetConfiguredFeatures.JUNGLE_HUGE), PlacementUtils.filteredByBlockSurvival(Blocks.JUNGLE_SAPLING));
             
-        	PlacementUtils.register(ctx, MARSH_BUSH, features.getOrThrow(PresetConfiguredFeatures.MARSH_BUSH), RTFPlacementModifiers.countExtra(0, 0.3F, 1), HeightmapPlacement.onHeightmap(Types.WORLD_SURFACE), BiomeFilter.biome());
-        	PlacementUtils.register(ctx, PLAINS_BUSH, features.getOrThrow(PresetConfiguredFeatures.PLAINS_BUSH), RTFPlacementModifiers.countExtra(0, 0.05F, 1), HeightmapPlacement.onHeightmap(Types.WORLD_SURFACE), BiomeFilter.biome());
-        	PlacementUtils.register(ctx, STEPPE_BUSH, features.getOrThrow(PresetConfiguredFeatures.STEPPE_BUSH), RTFPlacementModifiers.countExtra(0, 0.125F, 1), HeightmapPlacement.onHeightmap(Types.WORLD_SURFACE), BiomeFilter.biome());
-        	PlacementUtils.register(ctx, COLD_STEPPE_BUSH, features.getOrThrow(PresetConfiguredFeatures.COLD_STEPPE_BUSH), RTFPlacementModifiers.countExtra(0, 0.125F, 1), HeightmapPlacement.onHeightmap(Types.WORLD_SURFACE), BiomeFilter.biome());
-        	PlacementUtils.register(ctx, TAIGA_SCRUB_BUSH, features.getOrThrow(PresetConfiguredFeatures.TAIGA_SCRUB_BUSH), RTFPlacementModifiers.countExtra(0, 0.1F, 1), HeightmapPlacement.onHeightmap(Types.WORLD_SURFACE), BiomeFilter.biome());
+            PlacementUtils.register(ctx, ACACIA_BUSH, features.getOrThrow(PresetConfiguredFeatures.ACACIA_BUSH), PlacementUtils.filteredByBlockSurvival(Blocks.ACACIA_SAPLING));
+        	PlacementUtils.register(ctx, MARSH_BUSH, features.getOrThrow(PresetConfiguredFeatures.MARSH_BUSH), RTFPlacementModifiers.countExtra(0, 0.3F, 1), HeightmapPlacement.onHeightmap(Types.WORLD_SURFACE), PlacementUtils.filteredByBlockSurvival(Blocks.OAK_SAPLING), BiomeFilter.biome());
+        	PlacementUtils.register(ctx, PLAINS_BUSH, features.getOrThrow(PresetConfiguredFeatures.PLAINS_BUSH), RTFPlacementModifiers.countExtra(0, 0.05F, 1), HeightmapPlacement.onHeightmap(Types.WORLD_SURFACE), PlacementUtils.filteredByBlockSurvival(Blocks.BIRCH_SAPLING), BiomeFilter.biome());
+        	PlacementUtils.register(ctx, STEPPE_BUSH, features.getOrThrow(PresetConfiguredFeatures.STEPPE_BUSH), RTFPlacementModifiers.countExtra(0, 0.125F, 1), HeightmapPlacement.onHeightmap(Types.WORLD_SURFACE), PlacementUtils.filteredByBlockSurvival(Blocks.ACACIA_SAPLING), BiomeFilter.biome());
+        	PlacementUtils.register(ctx, COLD_STEPPE_BUSH, features.getOrThrow(PresetConfiguredFeatures.COLD_STEPPE_BUSH), RTFPlacementModifiers.countExtra(0, 0.125F, 1), HeightmapPlacement.onHeightmap(Types.WORLD_SURFACE), PlacementUtils.filteredByBlockSurvival(Blocks.SPRUCE_SAPLING), BiomeFilter.biome());
+        	PlacementUtils.register(ctx, TAIGA_SCRUB_BUSH, features.getOrThrow(PresetConfiguredFeatures.TAIGA_SCRUB_BUSH), RTFPlacementModifiers.countExtra(0, 0.1F, 1), HeightmapPlacement.onHeightmap(Types.WORLD_SURFACE), PlacementUtils.filteredByBlockSurvival(Blocks.SPRUCE_SAPLING), BiomeFilter.biome());
             
             PlacementUtils.register(ctx, FOREST_GRASS, features.getOrThrow(PresetConfiguredFeatures.FOREST_GRASS), worldSurfaceSquaredWithCount(7));
             PlacementUtils.register(ctx, BIRCH_FOREST_GRASS, features.getOrThrow(PresetConfiguredFeatures.BIRCH_FOREST_GRASS), worldSurfaceSquaredWithCount(7));
