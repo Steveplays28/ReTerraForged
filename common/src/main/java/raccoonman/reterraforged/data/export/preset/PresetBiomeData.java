@@ -1,4 +1,4 @@
-package raccoonman.reterraforged.data.export.preset;
+package raccoonman.reterraforged.data.worldgen.preset;
 
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
@@ -9,8 +9,8 @@ import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import raccoonman.reterraforged.RTFCommon;
-import raccoonman.reterraforged.data.preset.MiscellaneousSettings;
-import raccoonman.reterraforged.data.preset.Preset;
+import raccoonman.reterraforged.data.worldgen.preset.settings.MiscellaneousSettings;
+import raccoonman.reterraforged.data.worldgen.preset.settings.Preset;
 import raccoonman.reterraforged.world.worldgen.biome.RTFBiomes;
 
 public final class PresetBiomeData {

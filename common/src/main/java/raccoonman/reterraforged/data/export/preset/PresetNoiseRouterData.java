@@ -1,4 +1,4 @@
-package raccoonman.reterraforged.data.export.preset;
+package raccoonman.reterraforged.data.worldgen.preset;
 
 import java.util.stream.Stream;
 
@@ -15,9 +15,9 @@ import net.minecraft.world.level.levelgen.Noises;
 import net.minecraft.world.level.levelgen.OreVeinifier;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import raccoonman.reterraforged.RTFCommon;
-import raccoonman.reterraforged.data.preset.CaveSettings;
-import raccoonman.reterraforged.data.preset.Preset;
-import raccoonman.reterraforged.data.preset.WorldSettings;
+import raccoonman.reterraforged.data.worldgen.preset.settings.CaveSettings;
+import raccoonman.reterraforged.data.worldgen.preset.settings.Preset;
+import raccoonman.reterraforged.data.worldgen.preset.settings.WorldSettings;
 import raccoonman.reterraforged.world.worldgen.densityfunction.CellSampler;
 import raccoonman.reterraforged.world.worldgen.densityfunction.RTFDensityFunctions;
 import raccoonman.reterraforged.world.worldgen.noise.module.Noise;
@@ -25,7 +25,7 @@ import raccoonman.reterraforged.world.worldgen.noise.module.Noise;
 public class PresetNoiseRouterData {
 	public static final ResourceKey<DensityFunction> HEIGHT = createKey("height");
 	public static final ResourceKey<DensityFunction> GRADIENT = createKey("gradient");
-	public static final ResourceKey<DensityFunction> LOCAL_EROSION = createKey("local_erosion");
+	public static final ResourceKey<DensityFunction> HEIGHT_EROSION = createKey("erosion");
 	public static final ResourceKey<DensityFunction> SEDIMENT = createKey("sediment");
 	
 	private static final float SCALER = 128.0F;
@@ -58,7 +58,7 @@ public class PresetNoiseRouterData {
         ctx.register(NoiseRouterData.SPAGHETTI_2D, probabilityDensity(caveSettings.spaghettiCaveProbability, spaghetti2D(-worldDepth, worldHeight, densityFunctions, noiseParams)));
         
         ctx.register(GRADIENT, RTFDensityFunctions.cell(CellSampler.Field.GRADIENT));
-        ctx.register(LOCAL_EROSION, RTFDensityFunctions.cell(CellSampler.Field.LOCAL_EROSION));
+        ctx.register(HEIGHT_EROSION, RTFDensityFunctions.cell(CellSampler.Field.HEIGHT_EROSION));
         ctx.register(SEDIMENT, RTFDensityFunctions.cell(CellSampler.Field.SEDIMENT));
     }
     
@@ -79,6 +79,9 @@ public class PresetNoiseRouterData {
         DensityFunction depth = NoiseRouterData.getFunction(densityFunctions, NoiseRouterData.DEPTH);
         DensityFunction initialDensity = NoiseRouterData.noiseGradientDensity(DensityFunctions.cache2d(factor), depth);
         DensityFunction slopedCheese = NoiseRouterData.getFunction(densityFunctions, NoiseRouterData.SLOPED_CHEESE);
+//        DensityFunction entrances = DensityFunctions.min(slopedCheese, DensityFunctions.mul(DensityFunctions.constant(5.0), NoiseRouterData.getFunction(densityFunctions, NoiseRouterData.ENTRANCES)));
+//        DensityFunction slopedCheeseCaves = DensityFunctions.rangeChoice(slopedCheese, -1000000.0, 1.5625, entrances, NoiseRouterData.underground(densityFunctions, noiseParams, slopedCheese));
+//        DensityFunction finalDensity = DensityFunctions.min(NoiseRouterData.postProcess(slideOverworld(slopedCheeseCaves, -worldDepth)), NoiseRouterData.getFunction(densityFunctions, NoiseRouterData.NOODLE));
 
         DensityFunction entrances = caves.entranceCaveProbability > 0.0F ? DensityFunctions.min(slopedCheese, DensityFunctions.mul(DensityFunctions.constant(5.0D), DensityFunctions.interpolated(NoiseRouterData.getFunction(densityFunctions, NoiseRouterData.ENTRANCES)))) : slopedCheese;
 
@@ -144,12 +147,15 @@ public class PresetNoiseRouterData {
     /* 
      * the multiply function doesnt sample the second input
      * if the first input is zero, however this optimization doesn't get
-     * applied if either input is a Constant, so we cant just use DensityFunctions.zero()
+     * applied if either input is a Constant, so if we use 
+     * use DensityFunctions.zero() Noises.JAGGED will still get sampled
      */
     private static DensityFunction jaggednessPerformanceHack() {
     	return DensityFunctions.add(DensityFunctions.zero(), DensityFunctions.zero());
     }
 
+    // do this a different way, since this affects the size of the cave as well
+    @Deprecated
     private static DensityFunction probabilityDensity(float probability, DensityFunction function) {
     	if(probability == 0.0F) {
     		return DensityFunctions.constant(1.0F);
@@ -161,7 +167,7 @@ public class PresetNoiseRouterData {
     	return 1.0F + (-range / SCALER);
     }
     
-    private static ResourceKey<DensityFunction> createKey(String name) {
-        return ResourceKey.create(Registries.DENSITY_FUNCTION, RTFCommon.location(name));
+    private static ResourceKey<DensityFunction> createKey(String string) {
+        return ResourceKey.create(Registries.DENSITY_FUNCTION, RTFCommon.location(string));
     }
 }

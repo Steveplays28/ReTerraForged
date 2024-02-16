@@ -1,10 +1,10 @@
-package raccoonman.reterraforged.data.export.preset;
+package raccoonman.reterraforged.data.worldgen.preset;
 
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
-import raccoonman.reterraforged.data.preset.Preset;
-import raccoonman.reterraforged.data.preset.TerrainSettings;
-import raccoonman.reterraforged.data.preset.WorldSettings;
+import raccoonman.reterraforged.data.worldgen.preset.settings.Preset;
+import raccoonman.reterraforged.data.worldgen.preset.settings.TerrainSettings;
+import raccoonman.reterraforged.data.worldgen.preset.settings.WorldSettings;
 
 public class PresetTerrainProvider {
 
