@@ -29,7 +29,7 @@ public class RTFBuiltinPackSource extends BuiltInPackSource {
 	private static final ResourceLocation PACKS_DIR = RTFCommon.location("datapacks");
 	
 	public RTFBuiltinPackSource(DirectoryValidator directoryValidator) {
-		super(PackType.SERVER_DATA, createRTFPackSource(), PACKS_DIR, directoryValidator);
+		super(PackType.SERVER_DATA, createRTFPackSource(), PACKS_DIR);
 	}
 
 	@Nullable
