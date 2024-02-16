@@ -28,7 +28,7 @@ import raccoonman.reterraforged.RTFCommon;
 public class RTFBuiltinPackSource extends BuiltInPackSource {
 	private static final ResourceLocation PACKS_DIR = RTFCommon.location("datapacks");
 	
-	public RTFBuiltinPackSource(DirectoryValidator directoryValidator) {
+	public RTFBuiltinPackSource() {
 		super(PackType.SERVER_DATA, createRTFPackSource(), PACKS_DIR);
 	}
 
